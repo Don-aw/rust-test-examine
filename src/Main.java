@@ -7,12 +7,13 @@ public class Main {
 
         Parser p = new Parser();    // put this project folder in same folder as rust compiler
 
-        long start = System.nanoTime();
+        Timer t = new Timer();
+
+        t.start();
 
         p.displayStats(p.findAllFilters());
 
-        long time = System.nanoTime() - start;
-        System.out.println("time taken: " + time / 1000000000 + "." + time % 1000000000 + " s");
+        t.end();
 
     }
 }
