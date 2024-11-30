@@ -11,7 +11,7 @@ public class Parser {
     public Parser(File rootFolder) throws IOException {
         this.rootFolder = rootFolder;
 
-        BufferedReader r = new BufferedReader(new FileReader("src/ignoredKeywords.txt"));
+        BufferedReader r = new BufferedReader(new FileReader("src/main/java/ignoredKeywords.txt"));
         String l = r.readLine();
         while (l != null) {
             ignoreList.add(l);
