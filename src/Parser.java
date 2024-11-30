@@ -4,20 +4,26 @@ import java.util.*;
 
 public class Parser {
 
-    public ArrayList<File> findRustTestSuites(File root) {
-        ArrayList<File> files = new ArrayList<>();
-        File folder = new File(Paths.get(root.getAbsolutePath()).getParent().toString().concat("/rust/tests"));
+    ArrayList<String> ignoreList = new ArrayList<>();
+    File rootFolder;
 
-        for (File file : folder.listFiles()) {
-            String filename = file.getName();
-            // excludes rustdoc and .DS_Store
-            if (filename.contains(".") || filename.contains("rustdoc")) continue;
-            files.add(file);
+    // specify rust compiler's /tests folder location
+    public Parser(File rootFolder) throws IOException {
+        this.rootFolder = rootFolder;
+
+        BufferedReader r = new BufferedReader(new FileReader("src/ignoredKeywords.txt"));
+        String l = r.readLine();
+        while (l != null) {
+            ignoreList.add(l);
+            l = r.readLine();
         }
 
-        //System.out.println(files.toString());
+    }
 
-        return files;
+    // this root folder at same location as rust compiler folder
+    public Parser() throws IOException {
+
+        this(new File(Paths.get(new File("").getAbsolutePath()).getParent().toString().concat("/rust/tests")));
 
     }
 
@@ -81,19 +87,74 @@ public class Parser {
             line = r.readLine();
         }
 
-        System.out.println(filters);
+        //System.out.println(filters);
 
         return filters;
 
     }
 
-    public void given_suites(ArrayList<File> suites) {
+    public HashMap<String, HashMap<String, ArrayList<ArrayList<String>>>> findAllFilters() throws IOException {
 
-        for (File suite : suites) {
-            
+        ArrayList<File> dirs = new ArrayList<>();
+
+        listOfTestFiles(rootFolder, dirs);
+
+        HashMap<String, HashMap<String, ArrayList<ArrayList<String>>>> testFilters = new HashMap<>();
+
+        for (File test : dirs) {
+            testFilters.put(test.getName(), parse_filter(test));
         }
 
+        return testFilters;
+
     }
+
+    public void displayStats(HashMap<String, HashMap<String, ArrayList<ArrayList<String>>>> filters) {
+
+        ArrayList<HashMap<String, Integer>> stat = new ArrayList<>();
+        // only, ignore, need
+        for (int i = 0; i < 3; i++) stat.add(new HashMap<>());
+
+        for (String i : filters.keySet()) {
+
+            for (String j : filters.get(i).keySet()) {
+
+                for (int k = 0; k < 3; k++) {
+
+                    for (String condition : filters.get(i).get(j).get(k)) {
+
+                        HashMap<String, Integer> counter = stat.get(k);
+
+                        if (counter.keySet().contains(condition)) counter.put(condition, counter.get(condition) + 1);
+                        else counter.put(condition, 1);
+                    }
+
+                }
+
+            }
+
+        }
+
+        System.out.println("\n# of tests: " + filters.size() + "\n");
+        System.out.println("only:\n{");
+        for (String k : stat.get(0).keySet()) {
+            System.out.println("    \"" + k + "\" = " + stat.get(0).get(k));
+        }
+        System.out.println("}\n");
+
+        System.out.println("ignore:\n{");
+        for (String k : stat.get(1).keySet()) {
+            System.out.println("    \"" + k + "\" = " + stat.get(1).get(k));
+        }
+        System.out.println("}\n");
+
+        System.out.println("need:\n{");
+        for (String k : stat.get(2).keySet()) {
+            System.out.println("    \"" + k + "\" = " + stat.get(2).get(k));
+        }
+        System.out.println("}\n");
+    }
+
     public void given_env() {
 
     }
@@ -104,5 +165,27 @@ public class Parser {
             temp.add(new ArrayList<>());
         }
         h.put(revName, temp);
+    }
+
+    public void listOfTestFiles(File folder, ArrayList<File> dirs) {
+
+        if (folder.listFiles() != null) {
+            for (File file : folder.listFiles()) {
+                String filename = file.getName();
+                boolean ignore = false;
+
+                for (String keyword : ignoreList) {
+                    if (filename.contains(keyword)) ignore = true;
+                }
+
+                // add rust files if not ignored, else continue finding files under folders only
+                if (ignore);
+                else if (filename.contains(".rs")) dirs.add(file);
+                else if (!filename.contains(".")) listOfTestFiles(file, dirs);
+
+
+            }
+        }
+
     }
 }
