@@ -1,2 +1,3 @@
 rustdoc
 auxiliary
+run-make

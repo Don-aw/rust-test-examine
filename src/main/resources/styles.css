@@ -1,0 +1,118 @@
+
+.button {
+    -fx-background-color: #303030;
+    -fx-padding: 7px;
+    -fx-font-family: "Avenir Roman";
+    -fx-font-size: 15;
+    -fx-text-fill: #FFFFFF;
+
+}
+
+.button:hover {
+
+    -fx-background-color: #505050;
+    -fx-padding: 7px;
+
+}
+
+.label {
+
+    -fx-text-fill: #FFDEDE;
+    -fx-font-family: "Avenir Roman";
+
+}
+
+.list-view {
+
+    -fx-background-color: #252525;
+
+}
+
+.tools {
+
+    -fx-background-color: #303030;
+
+}
+
+.toolsCell {
+
+    -fx-background-color: #303030;
+    -fx-text-fill: #FFFFFF;
+    -fx-pref-width: 130px;
+    -fx-font-family: "Avenir Roman";
+    -fx-font-size: 20;
+
+}
+
+.toolsCell:selected {
+
+    -fx-background-color: #B1C29E;
+    -fx-text-fill: #000000;
+    -fx-pref-width: 130px;
+    -fx-font-family: "Avenir Roman";
+
+}
+
+.modes {
+
+    -fx-background-color: #303030;
+
+}
+
+.modeCell {
+
+    -fx-background-color: #303030;
+    -fx-text-fill: #FFFFFF;
+    -fx-pref-width: 130px;
+    -fx-font-family: "Avenir Roman";
+    -fx-font-size: 15;
+
+}
+
+.modeCell:selected {
+
+    -fx-background-color: #BB9BB0;
+    -fx-text-fill: #000000;
+    -fx-pref-width: 130px;
+    -fx-font-family: "Avenir Roman";
+
+}
+
+.suiteList {
+
+    -fx-background-color: #252525;
+
+}
+
+.suiteCell {
+
+    -fx-background-color: #252525;
+    -fx-text-fill: #FFFFFF;
+    -fx-pref-width: 130px;
+    -fx-font-family: "Avenir Roman";
+
+}
+
+.suiteCell:selected {
+
+    -fx-background-color: #B1C29E;
+    -fx-text-fill: #000000;
+    -fx-pref-width: 145px;
+    -fx-font-family: "Avenir Roman";
+
+}
+
+.input {
+
+    -fx-background-color: #404040;
+    -fx-text-fill: #FFFFFF;
+    -fx-pref-width: 145px;
+    -fx-font-family: "Avenir Roman";
+
+}
+
+.scroll-plane {
+
+    -fx-background-color: #252525;
+
+}

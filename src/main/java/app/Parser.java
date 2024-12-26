@@ -1,3 +1,5 @@
+package app;
+
 import java.io.*;
 import java.nio.file.Paths;
 import java.util.*;
@@ -6,6 +8,8 @@ public class Parser {
 
     ArrayList<String> ignoreList = new ArrayList<>();
     File rootFolder;
+    ArrayList<String> suites = new ArrayList<>();
+    HashMap<File, HashMap<String, ArrayList<ArrayList<String>>>> filters;
 
     // specify rust compiler's /tests folder location
     public Parser(File rootFolder) throws IOException {
@@ -18,6 +22,9 @@ public class Parser {
             l = r.readLine();
         }
 
+        // save all filters found for tests into "filter"
+        findAllFilters();
+
     }
 
     // this root folder at same location as rust compiler folder
@@ -27,12 +34,12 @@ public class Parser {
 
     }
 
-    public HashMap<String, ArrayList<ArrayList<String>>> parse_filter(File f) throws IOException {
+    public void parse_filter(File f) throws IOException {
 
         BufferedReader r = new BufferedReader(new FileReader(f));
 
-        HashMap<String, ArrayList<ArrayList<String>>> filters = new HashMap<>();
-        addRevision("main", filters);
+        HashMap<String, ArrayList<ArrayList<String>>> fileFilters = new HashMap<>();
+        addRevision("main", fileFilters);
 
         /*
             {
@@ -51,25 +58,30 @@ public class Parser {
                 line = line.substring(4);
                 //splice the "//@ " out
 
+                if (line.contains("nto Doesn't work without emulated TLS enabled (in LLVM)")) {
+                    System.out.println(line);
+                    System.out.println(f);
+                }
+
                 if (line.contains("revisions:")) {
-                    //splice the "revisions: " out
+                    //splice the "revisions: " out, and parse for all revisions
                     StringTokenizer st = new StringTokenizer(line.substring(11));
 
                     while (st.hasMoreTokens()) {
-                        addRevision(st.nextToken(), filters);
+                        addRevision(st.nextToken(), fileFilters);
                     }
 
-                } else if (line.contains("[")) {
+                } else if (line.contains("[")) {    // directive of a revision
 
-                    for (String i : filters.keySet()) {
+                    for (String i : fileFilters.keySet()) {     //if contains name of revision
                         if (line.contains(i)) {
 
-                            line = line.substring(3 + i.length());
+                            line = line.substring(3 + i.length());  //splice out [revision]
 
-                            if (line.contains("only")) filters.get(i).get(0).add(line.substring(5));
-                            else if (line.contains("ignore")) filters.get(i).get(1).add(line.substring(7));
-                            else if (line.contains("needs")) filters.get(i).get(2).add(line.substring(6));
-                            else filters.get(i).get(3).add(line);
+                            if (line.startsWith("only")) fileFilters.get(i).get(0).add(line.substring(5));
+                            else if (line.startsWith("ignore")) fileFilters.get(i).get(1).add(line.substring(7));
+                            else if (line.startsWith("needs")) fileFilters.get(i).get(2).add(line.substring(6));
+                            else fileFilters.get(i).get(3).add(line);
 
                         }
                     }
@@ -77,45 +89,42 @@ public class Parser {
 
                 } else {
 
-                    if (line.contains("only")) filters.get("main").get(0).add(line.substring(5));
-                    else if (line.contains("ignore")) filters.get("main").get(1).add(line.substring(7));
-                    else if (line.contains("needs")) filters.get("main").get(2).add(line.substring(6));
-                    else filters.get("main").get(3).add(line);
+                    if (line.startsWith("only")) fileFilters.get("main").get(0).add(line.substring(5));
+                    else if (line.startsWith("ignore")) fileFilters.get("main").get(1).add(line.substring(7));
+                    else if (line.startsWith("needs")) fileFilters.get("main").get(2).add(line.substring(6));
+                    else fileFilters.get("main").get(3).add(line);
                 }
             }
 
             line = r.readLine();
         }
 
-        //System.out.println(filters);
+        filters.put(f, fileFilters);
 
-        return filters;
+        //System.out.println(filters);
 
     }
 
-    public HashMap<String, HashMap<String, ArrayList<ArrayList<String>>>> findAllFilters() throws IOException {
+    public void findAllFilters() throws IOException {
 
+        filters = new HashMap<>();
         ArrayList<File> dirs = new ArrayList<>();
 
         listOfTestFiles(rootFolder, dirs);
 
-        HashMap<String, HashMap<String, ArrayList<ArrayList<String>>>> testFilters = new HashMap<>();
-
         for (File test : dirs) {
-            testFilters.put(test.getName(), parse_filter(test));
+            parse_filter(test);
         }
-
-        return testFilters;
 
     }
 
-    public void displayStats(HashMap<String, HashMap<String, ArrayList<ArrayList<String>>>> filters) {
+    public void displayStats() throws IOException {
 
         ArrayList<HashMap<String, Integer>> stat = new ArrayList<>();
         // only, ignore, need
         for (int i = 0; i < 3; i++) stat.add(new HashMap<>());
 
-        for (String i : filters.keySet()) {
+        for (File i : filters.keySet()) {
 
             for (String j : filters.get(i).keySet()) {
 
@@ -186,6 +195,22 @@ public class Parser {
 
             }
         }
+
+    }
+
+    public ArrayList<String> getSuiteNames() {
+
+        ArrayList<String> names = new ArrayList<>();
+
+        for (File f : rootFolder.listFiles()) {
+
+            boolean ignore = false;
+            for (String keyword : ignoreList)
+                if (f.getName().contains(keyword)) ignore = true;
+            if (!ignore && !f.getName().contains(".")) names.add(f.getName());
+        }
+
+        return names;
 
     }
 }

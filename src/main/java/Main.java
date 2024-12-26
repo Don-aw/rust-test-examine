@@ -1,6 +1,6 @@
-import java.io.File;
+import app.Parser;
+
 import java.io.IOException;
-import java.util.ArrayList;
 
 public class Main {
     public static void main(String[] args) throws IOException {
@@ -11,7 +11,7 @@ public class Main {
 
         t.start();
 
-        p.displayStats(p.findAllFilters());
+        p.displayStats();
 
         t.end();
 
