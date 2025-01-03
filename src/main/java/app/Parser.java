@@ -10,6 +10,8 @@ public class Parser {
     File rootFolder;
     ArrayList<String> suites = new ArrayList<>();
     HashMap<File, HashMap<String, ArrayList<ArrayList<String>>>> filters;
+    HashMap<String, ArrayList<HashSet<String>>> categories;
+    // category name: {  only:{}, ignore:{}, need:{}  }
 
     // specify rust compiler's /tests folder location
     public Parser(File rootFolder) throws IOException {
@@ -25,6 +27,8 @@ public class Parser {
         // save all filters found for tests into "filter"
         findAllFilters();
 
+        // load categories into variable
+        loadCategories();
     }
 
     // this root folder at same location as rust compiler folder
@@ -34,7 +38,7 @@ public class Parser {
 
     }
 
-    public void parse_filter(File f) throws IOException {
+    public void parseFilter(File f) throws IOException {
 
         BufferedReader r = new BufferedReader(new FileReader(f));
 
@@ -58,7 +62,7 @@ public class Parser {
                 line = line.substring(4);
                 //splice the "//@ " out
 
-                if (line.contains("nto Doesn't work without emulated TLS enabled (in LLVM)")) {
+                if (line.contains("apple:")) {
                     System.out.println(line);
                     System.out.println(f);
                 }
@@ -113,16 +117,18 @@ public class Parser {
         listOfTestFiles(rootFolder, dirs);
 
         for (File test : dirs) {
-            parse_filter(test);
+            parseFilter(test);
         }
 
     }
 
     public void displayStats() throws IOException {
 
-        ArrayList<HashMap<String, Integer>> stat = new ArrayList<>();
+        int[] amount = new int[3];
+
+        ArrayList<TreeMap<String, Integer>> stat = new ArrayList<>();
         // only, ignore, need
-        for (int i = 0; i < 3; i++) stat.add(new HashMap<>());
+        for (int i = 0; i < 3; i++) stat.add(new TreeMap<>());
 
         for (File i : filters.keySet()) {
 
@@ -132,10 +138,12 @@ public class Parser {
 
                     for (String condition : filters.get(i).get(j).get(k)) {
 
-                        HashMap<String, Integer> counter = stat.get(k);
+                        amount[k]++;
 
-                        if (counter.keySet().contains(condition)) counter.put(condition, counter.get(condition) + 1);
-                        else counter.put(condition, 1);
+                        //condition = condition.split(" ")[0];
+
+                        stat.get(k).merge(condition, 1, Integer::sum);;
+
                     }
 
                 }
@@ -145,26 +153,52 @@ public class Parser {
         }
 
         System.out.println("\n# of tests: " + filters.size() + "\n");
-        System.out.println("only:\n{");
+
+
+
+        System.out.println("only: " + amount[0] + " cases\n{");
         for (String k : stat.get(0).keySet()) {
             System.out.println("    \"" + k + "\" = " + stat.get(0).get(k));
         }
         System.out.println("}\n");
 
-        System.out.println("ignore:\n{");
+        System.out.println("ignore: " + amount[1] + " cases\n{");
         for (String k : stat.get(1).keySet()) {
             System.out.println("    \"" + k + "\" = " + stat.get(1).get(k));
         }
         System.out.println("}\n");
 
-        System.out.println("need:\n{");
+        System.out.println("needs: " + amount[2] + " cases\n{");
         for (String k : stat.get(2).keySet()) {
             System.out.println("    \"" + k + "\" = " + stat.get(2).get(k));
         }
         System.out.println("}\n");
     }
 
-    public void given_env() {
+    public void givenEnv(ArrayList<String> only, ArrayList<String> ignore, ArrayList<String> need) {
+
+        ArrayList<File> pass = new ArrayList<>();
+        ArrayList<File> fail = new ArrayList<>();
+
+        for (File i : filters.keySet()) {   // for every test file
+
+            for (String j : filters.get(i).keySet()) {  // for every revision { only, ignore, need }
+
+                boolean isRan = true;
+
+                // only - if not found, isRan = false
+                if (!filters.get(i).get(j).get(0).isEmpty())
+                    for (String dir : filters.get(i).get(j).get(0)) {
+                        boolean found = false;
+
+
+                        if (found) break;
+                }
+
+
+            }
+
+        }
 
     }
 
@@ -211,6 +245,28 @@ public class Parser {
         }
 
         return names;
+
+    }
+
+    public void loadCategories() {
+
+        ArrayList<HashSet<String>> targetTuples = new ArrayList<>();
+
+        for (File i : filters.keySet()) {   // for every file
+
+            for (String j : filters.get(i).keySet()) {  // for every revision
+
+                // for the "only" in revision
+
+                for (String condition: filters.get(i).get(j).get(0)) {
+
+                }
+
+                //
+
+            }
+
+        }
 
     }
 }
