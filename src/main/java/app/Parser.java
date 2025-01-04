@@ -261,8 +261,15 @@ public class Parser {
                     categories.loadOnly(dir);
                 }
 
-                //
+                // for the "ignore"
+                for (String dir: filters.get(i).get(j).get(1)) {
+                    categories.loadIgnore(dir);
+                }
 
+                // for "need"
+                for (String dir: filters.get(i).get(j).get(2)) {
+                    categories.loadNeed(dir);
+                }
             }
 
         }
