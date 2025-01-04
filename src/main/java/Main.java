@@ -11,7 +11,7 @@ public class Main {
 
         t.start();
 
-        p.displayStats();
+        //p.displayStats();
 
         t.end();
 

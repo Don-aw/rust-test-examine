@@ -10,7 +10,7 @@ public class Parser {
     File rootFolder;
     ArrayList<String> suites = new ArrayList<>();
     HashMap<File, HashMap<String, ArrayList<ArrayList<String>>>> filters;
-    HashMap<String, ArrayList<HashSet<String>>> categories;
+    Categories categories = new Categories();
     // category name: {  only:{}, ignore:{}, need:{}  }
 
     // specify rust compiler's /tests folder location
@@ -250,7 +250,6 @@ public class Parser {
 
     public void loadCategories() {
 
-        ArrayList<HashSet<String>> targetTuples = new ArrayList<>();
 
         for (File i : filters.keySet()) {   // for every file
 
@@ -258,8 +257,8 @@ public class Parser {
 
                 // for the "only" in revision
 
-                for (String condition: filters.get(i).get(j).get(0)) {
-
+                for (String dir: filters.get(i).get(j).get(0)) {
+                    categories.loadOnly(dir);
                 }
 
                 //
@@ -267,6 +266,8 @@ public class Parser {
             }
 
         }
+
+        categories.display();
 
     }
 }
