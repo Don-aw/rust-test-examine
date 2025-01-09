@@ -34,88 +34,59 @@ public class Categories {
 
     public void loadOnly(String dir) {
 
-        // match with ones having "-" in them first
-        if (dir.startsWith("wasm")) categories.get("wasm").get(0).add(dir);
-        else if (dir.split(" ")[0].contains("-")) categories.get("targetTuples").get(0).add(dir);
+        for (String cat: categoryPatterns.keySet()) {
+            // System.out.println(cat);
+            for (Pattern pattern : categoryPatterns.get(cat)) {
+                Matcher m = pattern.matcher(dir);
 
-        else {
-
-            boolean match = false;
-
-            for (String cat: categoryPatterns.keySet()) {
-                // System.out.println(cat);
-                for (Pattern pattern : categoryPatterns.get(cat)) {
-                    Matcher m = pattern.matcher(dir.split(" ")[0]);
-
-                    if (m.find()) {
-                        categories.get(cat).get(0).add(dir);
-                        match = true;
-                    }
-                    if (match) break;
+                if (m.find()) {
+                    categories.get(cat).get(0).add(dir);
+                    return;
                 }
-                if (match) break;
             }
-
-            if (!match) categories.get("other-only").get(0).add(dir);
         }
+
+        if (dir.contains("-")) categories.get("targetTuples").get(0).add(dir);
+        else categories.get("other-only").get(0).add(dir);
 
     }
 
     public void loadIgnore(String dir) {
 
-        // match with ones having "-" in them first
-        if (dir.startsWith("wasm")) categories.get("wasm").get(1).add(dir);
-        else if (dir.split(" ")[0].contains("-")) categories.get("targetTuples").get(1).add(dir);
+        for (String cat: categoryPatterns.keySet()) {
+            // System.out.println(cat);
+            for (Pattern pattern : categoryPatterns.get(cat)) {
+                Matcher m = pattern.matcher(dir);
 
-        else {
-
-            boolean match = false;
-
-            for (String cat: categoryPatterns.keySet()) {
-                // System.out.println(cat);
-                for (Pattern pattern : categoryPatterns.get(cat)) {
-                    Matcher m = pattern.matcher(dir.split(" ")[0]);
-
-                    if (m.find()) {
-                        categories.get(cat).get(1).add(dir);
-                        match = true;
-                    }
-                    if (match) break;
+                if (m.find()) {
+                    categories.get(cat).get(1).add(dir);
+                    return;
                 }
-                if (match) break;
             }
-
-            if (!match) categories.get("other-only").get(1).add(dir);
         }
 
+        if (dir.contains("-")) categories.get("targetTuples").get(1).add(dir);
+        else categories.get("other-ignore").get(1).add(dir);
 
     }
 
     public void loadNeed(String dir) {
-        // match with ones having "-" in them first
-        if (dir.startsWith("wasm")) categories.get("wasm").get(2).add(dir);
-        else if (dir.split(" ")[0].contains("-")) categories.get("targetTuples").get(2).add(dir);
 
-        else {
+        for (String cat: categoryPatterns.keySet()) {
+            // System.out.println(cat);
+            for (Pattern pattern : categoryPatterns.get(cat)) {
+                Matcher m = pattern.matcher(dir);
 
-            boolean match = false;
-
-            for (String cat: categoryPatterns.keySet()) {
-                // System.out.println(cat);
-                for (Pattern pattern : categoryPatterns.get(cat)) {
-                    Matcher m = pattern.matcher(dir.split(" ")[0]);
-
-                    if (m.find()) {
-                        categories.get(cat).get(2).add(dir);
-                        match = true;
-                    }
-                    if (match) break;
+                if (m.find()) {
+                    categories.get(cat).get(2).add(dir);
+                    return;
                 }
-                if (match) break;
             }
-
-            if (!match) categories.get("other-only").get(1).add(dir);
         }
+
+        if (dir.contains("-")) categories.get("targetTuples").get(2).add(dir);
+        else categories.get("other-ignore").get(2).add(dir);
+
     }
 
     public void display() {
@@ -142,16 +113,21 @@ public class Categories {
 
     public void loadPatterns() {
 
-        categoryPatterns.put("targetTuples", Arrays.asList(
-                Pattern.compile("\\b-\\b", Pattern.CASE_INSENSITIVE)
-        ));
+//        categoryPatterns.put("targetTuples", Arrays.asList(
+//                Pattern.compile("\\b-\\b", Pattern.CASE_INSENSITIVE)
+//        ));
 
         categoryPatterns.put("architecture", Arrays.asList(
-                Pattern.compile("arch", Pattern.CASE_INSENSITIVE),
+                Pattern.compile("\\baarch64\\s", Pattern.CASE_INSENSITIVE),
+                Pattern.compile("\\baarch64\\z", Pattern.CASE_INSENSITIVE),
+                Pattern.compile("\\bloongarch64\\s", Pattern.CASE_INSENSITIVE),
+                Pattern.compile("\\bloongarch64\\z", Pattern.CASE_INSENSITIVE),
                 Pattern.compile("\\barm\\b", Pattern.CASE_INSENSITIVE),
                 Pattern.compile("\\bnvptx", Pattern.CASE_INSENSITIVE),
                 Pattern.compile("\\briscv", Pattern.CASE_INSENSITIVE),
-                Pattern.compile("\\bx86", Pattern.CASE_INSENSITIVE),
+                Pattern.compile("\\bx86\\b", Pattern.CASE_INSENSITIVE),
+                Pattern.compile("\\Ax86_64\\s", Pattern.CASE_INSENSITIVE),
+                Pattern.compile("\\Ax86_64\\z", Pattern.CASE_INSENSITIVE),
                 Pattern.compile("\\bbpf", Pattern.CASE_INSENSITIVE),
                 Pattern.compile("\\bavr\\b", Pattern.CASE_INSENSITIVE),
                 Pattern.compile("\\bmsp430\\b", Pattern.CASE_INSENSITIVE),
@@ -161,14 +137,15 @@ public class Categories {
                 ));
 
         categoryPatterns.put("vendor", Arrays.asList(
-                Pattern.compile("\\bapple\\b", Pattern.CASE_INSENSITIVE),
+                Pattern.compile("\\Aapple\\b", Pattern.CASE_INSENSITIVE),
                 Pattern.compile("\\buwp\\b", Pattern.CASE_INSENSITIVE)
         ));
 
         categoryPatterns.put("os", Arrays.asList(
-                Pattern.compile("\\blinux\\b", Pattern.CASE_INSENSITIVE),
-                Pattern.compile("\\bunix\\b", Pattern.CASE_INSENSITIVE),
-                Pattern.compile("\\bwindows\\b", Pattern.CASE_INSENSITIVE),
+                Pattern.compile("\\Alinux\\b", Pattern.CASE_INSENSITIVE),
+                Pattern.compile("\\Aunix\\b", Pattern.CASE_INSENSITIVE),
+                Pattern.compile("\\Awindows\\z", Pattern.CASE_INSENSITIVE),
+                Pattern.compile("\\Awindows\\s", Pattern.CASE_INSENSITIVE),
                 Pattern.compile("os\\b", Pattern.CASE_INSENSITIVE),
                 Pattern.compile("\\bemscripten\\b", Pattern.CASE_INSENSITIVE),
                 Pattern.compile("bsd\\b", Pattern.CASE_INSENSITIVE),
@@ -182,10 +159,10 @@ public class Categories {
         ));
 
         categoryPatterns.put("environment", Arrays.asList(
-                Pattern.compile("\\bgnu\\b", Pattern.CASE_INSENSITIVE),
-                Pattern.compile("\\bmsvc\\b", Pattern.CASE_INSENSITIVE),
-                Pattern.compile("\\bmusl\\b", Pattern.CASE_INSENSITIVE),
-                Pattern.compile("\\bsgx\\b", Pattern.CASE_INSENSITIVE)
+                Pattern.compile("\\Agnu\\b", Pattern.CASE_INSENSITIVE),
+                Pattern.compile("\\Amsvc\\b", Pattern.CASE_INSENSITIVE),
+                Pattern.compile("\\Amusl\\b", Pattern.CASE_INSENSITIVE),
+                Pattern.compile("\\Asgx\\b", Pattern.CASE_INSENSITIVE)
         ));
 
         categoryPatterns.put("pointerWidth", Arrays.asList(
@@ -227,9 +204,9 @@ public class Categories {
         ));
 
         categoryPatterns.put("debugger", Arrays.asList(
-                Pattern.compile("\\bcdb", Pattern.CASE_INSENSITIVE),
-                Pattern.compile("\\bgdb", Pattern.CASE_INSENSITIVE),
-                Pattern.compile("\\blldb", Pattern.CASE_INSENSITIVE)
+                Pattern.compile("\\Acdb", Pattern.CASE_INSENSITIVE),
+                Pattern.compile("\\Agdb", Pattern.CASE_INSENSITIVE),
+                Pattern.compile("\\Alldb", Pattern.CASE_INSENSITIVE)
         ));
 
         categoryPatterns.put("debugAssert", Arrays.asList(
@@ -237,7 +214,7 @@ public class Categories {
         ));
 
         categoryPatterns.put("needFix", Arrays.asList(
-                Pattern.compile("\\btest", Pattern.CASE_INSENSITIVE)
+                Pattern.compile("\\Atest", Pattern.CASE_INSENSITIVE)
         ));
 
         categoryPatterns.put("llvm", Arrays.asList(
@@ -254,7 +231,8 @@ public class Categories {
                 Pattern.compile("\\bthreads", Pattern.CASE_INSENSITIVE),
                 Pattern.compile("\\bpass\\b", Pattern.CASE_INSENSITIVE),
                 Pattern.compile("\\bdlltool\\b", Pattern.CASE_INSENSITIVE),
-                Pattern.compile("\\bhorizon\\b", Pattern.CASE_INSENSITIVE)
+                Pattern.compile("\\bhorizon\\b", Pattern.CASE_INSENSITIVE),
+                Pattern.compile("\\bdeterministic", Pattern.CASE_INSENSITIVE)
         ));
 
         categoryPatterns.put("addiDependency", Arrays.asList(

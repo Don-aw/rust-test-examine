@@ -62,12 +62,19 @@ public class Parser {
                 line = line.substring(4);
                 //splice the "//@ " out
 
-                if (line.contains("apple:")) {
-                    System.out.println(line);
-                    System.out.println(f);
-                }
+//                if (line.contains("apple:")) {
+//                    System.out.println(line);
+//                    System.out.println(f);
+//                }
 
-                if (line.contains("revisions:")) {
+                // skip file altogether if is auxiliary
+                if (line.contains("test") &&
+                        (line.contains("aux")
+                        || line.toLowerCase().contains("not a test")
+                        || line.contains("helper")))
+                    return;
+
+                else if (line.contains("revisions:")) {
                     //splice the "revisions: " out, and parse for all revisions
                     StringTokenizer st = new StringTokenizer(line.substring(11));
 
@@ -175,7 +182,7 @@ public class Parser {
         System.out.println("}\n");
     }
 
-    public void givenEnv(ArrayList<String> only, ArrayList<String> ignore, ArrayList<String> need) {
+    public void givenEnv() {
 
         ArrayList<File> pass = new ArrayList<>();
         ArrayList<File> fail = new ArrayList<>();
@@ -202,6 +209,47 @@ public class Parser {
 
     }
 
+    public ArrayList<String> givenDirs(ArrayList<ArrayList<String>> selectedFilter) {
+
+        ArrayList<String> matches = new ArrayList<>();
+
+        for (File i : filters.keySet()) {   // for every test file
+
+            for (String j : filters.get(i).keySet()) {  // for every revision { only, ignore, need }
+
+                boolean match = true;
+
+                // only
+
+                boolean found = false;
+
+
+                for (int k = 0; k < 3; k++) {
+
+                    if (!selectedFilter.get(k).isEmpty())
+                        for (String keyword : selectedFilter.get(k)) {   // for every filter directive
+                            found = false;
+                            for (String dir : filters.get(i).get(j).get(k)) {   // for every directive in only, ignore, need
+                                if (dir.contains(keyword)) {
+
+                                    found = true;
+                                }
+
+                            }
+                            if (!found) match = false;
+                        }
+                    
+                }
+
+                if (match) matches.add(i.getAbsolutePath().concat("#" + j));
+
+            }
+
+        }
+
+        return matches;
+    }
+
     public void addRevision(String revName, HashMap h) {
         ArrayList<ArrayList<String>> temp = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
@@ -211,6 +259,22 @@ public class Parser {
     }
 
     public void listOfTestFiles(File folder, ArrayList<File> dirs) {
+
+        //special parsing rules for the run-make suite
+        if (folder.getName().equals("run-make")) {
+            for (File subFolder : folder.listFiles()) {
+
+                if (subFolder.getName().contains(".")) continue;
+
+                for (File file : subFolder.listFiles()) {
+                    if (file.getName().equals("rmake.rs")) {
+                        dirs.add(new File(subFolder.getAbsolutePath().concat("/rmake.rs")));
+                    }
+                }
+
+            }
+            return;
+        }
 
         if (folder.listFiles() != null) {
             for (File file : folder.listFiles()) {
@@ -225,7 +289,6 @@ public class Parser {
                 if (ignore);
                 else if (filename.contains(".rs")) dirs.add(file);
                 else if (!filename.contains(".")) listOfTestFiles(file, dirs);
-
 
             }
         }
