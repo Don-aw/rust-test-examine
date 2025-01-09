@@ -30,10 +30,10 @@
             </VBox>
          </left>
          <center>
-            <VBox fx:id="middle" prefHeight="500.0" prefWidth="288.0" style="-fx-background-color: #252525; -fx-padding: 10; -fx-pref-width: 170;" styleClass="list-view" stylesheets="@styles.css" BorderPane.alignment="CENTER" />
+            <VBox fx:id="middle" prefHeight="500.0" prefWidth="290.0" style="-fx-background-color: #252525; -fx-padding: 10; -fx-pref-width: 170;" styleClass="list-view" stylesheets="@styles.css" BorderPane.alignment="CENTER" />
          </center>
          <right>
-            <VBox fx:id="right" prefHeight="500.0" prefWidth="455.0" style="-fx-background-color: #202020; -fx-padding: 10; -fx-pref-width: 460;" BorderPane.alignment="CENTER">
+            <VBox fx:id="right" prefHeight="500.0" prefWidth="340.0" style="-fx-background-color: #202020; -fx-padding: 10; -fx-pref-width: 340;" BorderPane.alignment="CENTER">
                <children>
                   <Text fill="#ffdede" strokeType="OUTSIDE" strokeWidth="0.0" text="Statistics" wrappingWidth="246.0">
                      <font>

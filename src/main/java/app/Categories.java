@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 
 public class Categories {
 
-    private HashMap<String, ArrayList<TreeSet<String>>> categories = new HashMap<>();
+    public HashMap<String, ArrayList<TreeSet<String>>> categories = new HashMap<>();
     // category name: {  only:{}, ignore:{}, need:{}  }
     private String[] categoryNames = {
             "targetTuples", "architecture", "vendor", "os", "environment",
@@ -109,6 +109,10 @@ public class Categories {
             }
 
         }
+    }
+
+    public String[] getCategoryNames() {
+        return categoryNames;
     }
 
     public void loadPatterns() {
@@ -246,4 +250,5 @@ public class Categories {
 
 
     }
+
 }

@@ -1,5 +1,78 @@
+.filterBox {
+
+    -fx-background-color: #303030;
+    -fx-padding: 7px;
+    -fx-spacing: 10px;
+    -fx-pref-height: 20px;
+
+}
+
+.categories {
+
+    -fx-pref-height: 500px;
+    -fx-background-color: #303030;
+
+}
+
+.filterCell {
+
+    -fx-background-color: #252525;
+    -fx-text-fill: #000000;
+    -fx-pref-width: 130px;
+    -fx-font-family: "Avenir Roman";
+    -fx-font-size: 12;
+
+}
+
+.filterCell:selected {
+
+    -fx-background-color: #252525;
+    -fx-text-fill: #000000;
+    -fx-pref-width: 130px;
+    -fx-font-family: "Avenir Roman";
+
+}
+
+.optionList {
+
+    -fx-background-color: #252525;
+    -fx-text-fill: #FFFFFF;
+
+}
+
+.optionList .button {
+
+    -fx-text-fill: #FFFFFF;
+
+}
+
+.optionList .text {
+
+    -fx-fill: #FFFFFF;
+
+}
+
+.optionCell {
+
+    -fx-background-color: #252525;
+    -fx-text-fill: #FFFFFF;
+    -fx-pref-width: 50px;
+    -fx-font-family: "Avenir Roman";
+    -fx-font-size: 12;
+
+}
+
+.optionCell:selected {
+
+    -fx-background-color: #252525;
+    -fx-text-fill: #FFFFFF;
+    -fx-pref-width: 50px;
+    -fx-font-family: "Avenir Roman";
+
+}
 
 .button {
+
     -fx-background-color: #303030;
     -fx-padding: 7px;
     -fx-font-family: "Avenir Roman";

@@ -3,10 +3,13 @@ package app;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.ComboBoxListCell;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 
@@ -34,6 +37,9 @@ public class Controller implements Initializable {
     private ListView<String> suiteList;
     private Label selected;
     private Label t;
+
+    // filter elements
+    ListView<HBox> filterList;
 
     ArrayList<String> availableSuites = new ArrayList<>();
     ArrayList<String> curr = new ArrayList<>();
@@ -84,15 +90,16 @@ public class Controller implements Initializable {
                 if (change.wasAdded()) {
                     switch (change.getAddedSubList().getFirst().toString()) {
                         case "Tag Search" -> {
-                            // activate all, select, single and clear nodes
-                            enableTagSearch(true);
+                            enableTagSearch(true);  // tag
+                            enableFilter(false);    // no filter
                         }
                         case "Filter" -> {
-                            enableTagSearch(false);
+                            enableTagSearch(false); // no tag
+                            enableFilter(true);     // filter
                         }
                         case "Never runs" -> {
-                            // elements for never run
-                            enableTagSearch(false);
+                            enableTagSearch(false); //no tag
+                            enableFilter(false);    //no filter
                         }
                     }
                     updateCurr();
@@ -218,6 +225,90 @@ public class Controller implements Initializable {
     }
 
     public void initializeFilter() {
+        // middle part
+        filterList = new ListView<>();
+        stylize(filterList, "categories");
+
+        for (String cat : p.categories.getCategoryNames()) {
+
+            HBox h = new HBox();
+            h.setAlignment(Pos.CENTER_LEFT);
+            stylize(h, "filterBox");
+
+            // add listener later
+            CheckBox checkBox = new CheckBox();
+            checkBox.setText("");
+            stylize(checkBox, "filterEnable");
+
+            h.getChildren().add(checkBox);
+
+            VBox v = new VBox();
+            stylize(v, "filterDisplay");
+
+            Label title = new Label();
+            title.setText(cat);
+            stylize(title, "filterTitle");
+            v.getChildren().add(title);
+
+            // load only/ignore/need option if they exist in category
+
+            String[] filterBy = {"only", "ignore", "need"};
+
+            ComboBox<String> enable = new ComboBox<>();
+            stylize(enable, "optionList");
+            enable.setCellFactory(new Callback<>() {
+                @Override
+                public ListCell<String> call(ListView<String> param) {
+                    return new ListCell<>() {
+                        @Override
+                        protected void updateItem(String item, boolean empty) {
+                            super.updateItem(item, empty);
+                            setText(item);
+                            getStyleClass().add("optionCell");
+
+                        }
+                    };
+                }
+            });     // Style Class "optionCell";
+
+            for (int i = 0; i < 3; i++) {
+
+                if (!p.categories.categories.get(cat).get(i).isEmpty()) {
+
+                    enable.getItems().add(filterBy[i]);
+
+                }
+            }
+            v.getChildren().add(enable);
+
+            h.getChildren().add(v);
+
+            filterList.getItems().add(h);
+
+            // filterList.getItems().add(h);
+
+
+
+        }
+
+        filterList.setCellFactory(new Callback<>() {
+            @Override
+            public ListCell<HBox> call(ListView<HBox> param) {
+                return new ListCell<>() {
+                    @Override
+                    protected void updateItem(HBox item, boolean empty) {
+                        super.updateItem(item, empty);
+                        setGraphic(item);
+                        getStyleClass().add("filterCell");
+
+                    }
+                };
+            }
+        });     // Style Class "filterCell"
+
+        middle.getChildren().add(filterList);
+
+        enableFilter(false);
 
     }
 
@@ -239,6 +330,17 @@ public class Controller implements Initializable {
         t.setVisible(active);
         selected.setManaged(active);
         selected.setVisible(active);
+    }
+
+    public void enableFilter(boolean active) {
+        //left components
+
+        //middle components
+        filterList.setManaged(active);
+        filterList.setVisible(active);
+
+        //right components
+
     }
 
     public void updateCurr() {
