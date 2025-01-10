@@ -1,16 +1,29 @@
+.filterEnable .box {
+
+    -fx-background-color: #252525;
+
+}
+
 .filterBox {
 
     -fx-background-color: #303030;
     -fx-padding: 7px;
-    -fx-spacing: 10px;
+    -fx-spacing: 20px;
     -fx-pref-height: 20px;
 
 }
 
 .categories {
 
-    -fx-pref-height: 500px;
+    -fx-pref-height: 800px;
     -fx-background-color: #303030;
+
+}
+
+.testList {
+
+    -fx-pref-height: 800px;
+    -fx-background-color: #252525;
 
 }
 
@@ -67,6 +80,25 @@
     -fx-background-color: #252525;
     -fx-text-fill: #FFFFFF;
     -fx-pref-width: 50px;
+    -fx-font-family: "Avenir Roman";
+
+}
+
+.dirCell {
+
+    -fx-background-color: #252525;
+    -fx-text-fill: #FFFFFF;
+    -fx-pref-width: 150px;
+    -fx-font-family: "Avenir Roman";
+    -fx-font-size: 12;
+
+}
+
+.dirCell:selected {
+
+    -fx-background-color: #252525;
+    -fx-text-fill: #FFFFFF;
+    -fx-pref-width: 150px;
     -fx-font-family: "Avenir Roman";
 
 }

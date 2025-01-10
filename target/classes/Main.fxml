@@ -8,11 +8,11 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane prefHeight="551.0" prefWidth="824.0" style="-fx-pref-height: 500; -fx-pref-width: 800;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.Controller">
+<AnchorPane prefHeight="644.0" prefWidth="1023.0" style="-fx-pref-height: 800; -fx-pref-width: 1300; -fx-max-height: 800; -fx-max-width: 1300;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.Controller">
    <children>
-      <BorderPane prefHeight="500.0" prefWidth="800.0">
+      <BorderPane prefHeight="355.0" prefWidth="1190.0" style="-fx-pref-height: 800; -fx-pref-width: 1300;">
          <left>
-            <VBox prefHeight="500.0" prefWidth="171.0" style="-fx-background-color: #303030; -fx-padding: 10; -fx-pref-width: 170;" BorderPane.alignment="CENTER">
+            <VBox prefHeight="400.0" prefWidth="139.0" style="-fx-background-color: #303030; -fx-padding: 10; -fx-pref-width: 170;" BorderPane.alignment="CENTER">
                <children>
                   <Pane prefHeight="77.0" prefWidth="141.0" style="-fx-background-color: #303030; -fx-border-color: #696969; -fx-border-width: 5;">
                      <children>
@@ -30,10 +30,10 @@
             </VBox>
          </left>
          <center>
-            <VBox fx:id="middle" prefHeight="500.0" prefWidth="290.0" style="-fx-background-color: #252525; -fx-padding: 10; -fx-pref-width: 170;" styleClass="list-view" stylesheets="@styles.css" BorderPane.alignment="CENTER" />
+            <VBox fx:id="middle" prefHeight="800.0" prefWidth="476.0" style="-fx-background-color: #252525; -fx-padding: 10; -fx-pref-width: 170;" styleClass="list-view" stylesheets="@styles.css" BorderPane.alignment="CENTER" />
          </center>
          <right>
-            <VBox fx:id="right" prefHeight="500.0" prefWidth="340.0" style="-fx-background-color: #202020; -fx-padding: 10; -fx-pref-width: 340;" BorderPane.alignment="CENTER">
+            <VBox fx:id="right" pickOnBounds="false" prefHeight="800.0" prefWidth="670.0" style="-fx-background-color: #202020; -fx-padding: 10; -fx-pref-width: 680;" BorderPane.alignment="CENTER">
                <children>
                   <Text fill="#ffdede" strokeType="OUTSIDE" strokeWidth="0.0" text="Statistics" wrappingWidth="246.0">
                      <font>

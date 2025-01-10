@@ -4,20 +4,18 @@ import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.ComboBoxListCell;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 
+import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class Controller implements Initializable {
 
@@ -30,6 +28,8 @@ public class Controller implements Initializable {
     @FXML
     private VBox right;
 
+    final String[] filterBy = {"only", "ignore", "need"};
+
     // tag search elements
     private ListView<String> modes;
     private Button clear;
@@ -39,7 +39,11 @@ public class Controller implements Initializable {
     private Label t;
 
     // filter elements
-    ListView<HBox> filterList;
+    private ListView<HBox> filterList;
+    private Label match;
+    private ListView<String> matchingTestList;
+    private Map<CheckBox, ComboBox<String>[]> flat = new HashMap<>();
+    ArrayList<ArrayList<String>> selectedFilter = new ArrayList<>();
 
     ArrayList<String> availableSuites = new ArrayList<>();
     ArrayList<String> curr = new ArrayList<>();
@@ -119,20 +123,8 @@ public class Controller implements Initializable {
         modes = new ListView<>();
         modes.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         modes.getItems().addAll(modeTypes);
-        modes.setCellFactory(new Callback<>() {
-            @Override
-            public ListCell<String> call(ListView<String> param) {
-                return new ListCell<>() {
-                    @Override
-                    protected void updateItem(String item, boolean empty) {
-                        super.updateItem(item, empty);
-                        getStyleClass().add("modeCell");
-                        setText(item);
-                    }
-                };
-            }
-        });     // Style Class "modeCell"
         stylize(modes, "modes");
+        setStringCellFactory(modes, "modeCell");
 
         /* changes modes based on selected mode */
         modes.getSelectionModel().getSelectedItems().addListener((ListChangeListener<String>) change -> {
@@ -187,19 +179,7 @@ public class Controller implements Initializable {
         suiteList = new ListView<>();
         suiteList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         suiteList.getItems().addAll(availableSuites);
-        suiteList.setCellFactory(new Callback<>() {
-            @Override
-            public ListCell<String> call(ListView<String> param) {
-                return new ListCell<>() {
-                    @Override
-                    protected void updateItem(String item, boolean empty) {
-                        super.updateItem(item, empty);
-                        getStyleClass().add("suiteCell");
-                        setText(item);
-                    }
-                };
-            }
-        });     // Style Class "suiteCell"
+        setStringCellFactory(suiteList, "suiteCell");
 
         suiteList.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) updateCurr();
@@ -225,6 +205,7 @@ public class Controller implements Initializable {
     }
 
     public void initializeFilter() {
+
         // middle part
         filterList = new ListView<>();
         stylize(filterList, "categories");
@@ -239,6 +220,9 @@ public class Controller implements Initializable {
             CheckBox checkBox = new CheckBox();
             checkBox.setText("");
             stylize(checkBox, "filterEnable");
+            checkBox.setOnAction(e -> {
+                updateFilterStats(checkBox);
+            });
 
             h.getChildren().add(checkBox);
 
@@ -252,61 +236,57 @@ public class Controller implements Initializable {
 
             // load only/ignore/need option if they exist in category
 
-            String[] filterBy = {"only", "ignore", "need"};
-
             ComboBox<String> enable = new ComboBox<>();
             stylize(enable, "optionList");
-            enable.setCellFactory(new Callback<>() {
-                @Override
-                public ListCell<String> call(ListView<String> param) {
-                    return new ListCell<>() {
-                        @Override
-                        protected void updateItem(String item, boolean empty) {
-                            super.updateItem(item, empty);
-                            setText(item);
-                            getStyleClass().add("optionCell");
+            setStringCellFactory(enable, "optionCell");
 
-                        }
-                    };
-                }
-            });     // Style Class "optionCell";
+            ComboBox<String> category = new ComboBox<>();
+            stylize(category, "optionList");
+            setStringCellFactory(category, "dirCell");
 
             for (int i = 0; i < 3; i++) {
-
                 if (!p.categories.categories.get(cat).get(i).isEmpty()) {
-
                     enable.getItems().add(filterBy[i]);
 
+                    for (String dir : p.categories.categories.get(cat).get(i)) {
+                        category.getItems().add(dir);
+                    }
                 }
             }
+
+            enable.getSelectionModel().selectFirst();
+
+            flat.put(checkBox, new ComboBox[]{enable, category});
+
             v.getChildren().add(enable);
 
             h.getChildren().add(v);
+            h.getChildren().add(category);
 
             filterList.getItems().add(h);
 
-            // filterList.getItems().add(h);
-
-
-
         }
 
-        filterList.setCellFactory(new Callback<>() {
-            @Override
-            public ListCell<HBox> call(ListView<HBox> param) {
-                return new ListCell<>() {
-                    @Override
-                    protected void updateItem(HBox item, boolean empty) {
-                        super.updateItem(item, empty);
-                        setGraphic(item);
-                        getStyleClass().add("filterCell");
-
-                    }
-                };
-            }
-        });     // Style Class "filterCell"
+        setNodeCellFactory(filterList, "filterCell");
 
         middle.getChildren().add(filterList);
+
+        // right part
+
+        match = new Label();
+        match.setText("Matching tests: ");
+        stylize(match, "");
+
+        right.getChildren().add(match);
+
+        matchingTestList = new ListView<>();
+        stylize(matchingTestList, "testList");
+        setStringCellFactory(matchingTestList, "dirCell");
+
+        right.getChildren().add(matchingTestList);
+
+        for (int i = 0; i < 3; i++) selectedFilter.add(new ArrayList<>());
+        matchingTestList.getItems().addAll(p.givenDirs(selectedFilter));
 
         enableFilter(false);
 
@@ -340,7 +320,10 @@ public class Controller implements Initializable {
         filterList.setVisible(active);
 
         //right components
-
+        match.setManaged(active);
+        match.setVisible(active);
+        matchingTestList.setManaged(active);
+        matchingTestList.setVisible(active);
     }
 
     public void updateCurr() {
@@ -364,11 +347,11 @@ public class Controller implements Initializable {
 
         selected.setText(curr.toString());
 
-        updateStats();
+        updateTagSearchStats();
 
     }
 
-    public void updateStats() {
+    public void updateTagSearchStats() {
 
         try {
 
@@ -385,9 +368,109 @@ public class Controller implements Initializable {
         if (!(mode == ToolMode.ALL)) selected.setText("[]");
     }
 
+    public void updateFilterStats(CheckBox checkBox) {
+
+        matchingTestList.getItems().clear();
+
+        if (flat.get(checkBox)[1].getSelectionModel().getSelectedItem() == null) {
+            match.setText("Item not selected you moron");
+            return;
+        }
+
+        if (checkBox.isSelected()) {    // method called on ticking a checkbox
+            switch (flat.get(checkBox)[0].getSelectionModel().getSelectedItem()) {
+                case "only" -> {
+                    selectedFilter.get(0).add(flat.get(checkBox)[1].getSelectionModel().getSelectedItem());
+                }
+                case "ignore" -> {
+                    selectedFilter.get(1).add(flat.get(checkBox)[1].getSelectionModel().getSelectedItem());
+                }
+                case "need" -> {
+                    selectedFilter.get(2).add(flat.get(checkBox)[1].getSelectionModel().getSelectedItem());
+                }
+            }
+
+        } else {
+            // method called on unticking
+            switch (flat.get(checkBox)[0].getSelectionModel().getSelectedItem()) {
+                case "only" -> {
+                    selectedFilter.get(0).removeIf(s -> s.equals(flat.get(checkBox)[1].getSelectionModel().getSelectedItem()));
+                }
+                case "ignore" -> {
+                    selectedFilter.get(1).removeIf(s -> s.equals(flat.get(checkBox)[1].getSelectionModel().getSelectedItem()));
+                }
+                case "need" -> {
+                    selectedFilter.get(2).removeIf(s -> s.equals(flat.get(checkBox)[1].getSelectionModel().getSelectedItem()));
+                }
+            }
+        }
+
+        ArrayList<String> matchedTest = p.givenDirs(selectedFilter);
+
+        match.setText("Matching tests: " + matchedTest.size());
+        matchingTestList.getItems().addAll(matchedTest);
+
+
+
+    }
+
     public void stylize(Parent e, String styleClass) {
 
         e.getStyleClass().add(styleClass);
         e.getStylesheets().add("styles.css");
     }
+
+    // for listview
+    public void setStringCellFactory(ListView<String> list, String styleClass) {
+        list.setCellFactory(new Callback<>() {
+            @Override
+            public ListCell<String> call(ListView<String> param) {
+                return new ListCell<>() {
+                    @Override
+                    protected void updateItem(String item, boolean empty) {
+                        super.updateItem(item, empty);
+                        getStyleClass().add(styleClass);
+                        setText(item);
+                    }
+                };
+            }
+        });
+    }
+
+    // overloaded for comboBox
+    public void setStringCellFactory(ComboBox<String> list, String styleClass) {
+        list.setCellFactory(new Callback<>() {
+            @Override
+            public ListCell<String> call(ListView<String> param) {
+                return new ListCell<>() {
+                    @Override
+                    protected void updateItem(String item, boolean empty) {
+                        super.updateItem(item, empty);
+                        getStyleClass().add(styleClass);
+                        setText(item);
+                    }
+                };
+            }
+        });
+    }
+
+    public <K extends Node> void setNodeCellFactory(ListView<K> list, String styleClass) {
+        list.setCellFactory(new Callback<>() {
+            @Override
+            public ListCell<K> call(ListView<K> param) {
+                return new ListCell<>() {
+                    @Override
+                    protected void updateItem(K item, boolean empty) {
+                        super.updateItem(item, empty);
+                        setGraphic(item);
+                        getStyleClass().add(styleClass);
+
+                    }
+                };
+            }
+        });
+    }
+
+
+
 }

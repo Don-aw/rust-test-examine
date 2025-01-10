@@ -337,7 +337,7 @@ public class Parser {
 
         }
 
-        categories.display();
+        // categories.display();
 
     }
 }
