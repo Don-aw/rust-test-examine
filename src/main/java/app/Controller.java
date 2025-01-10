@@ -244,15 +244,17 @@ public class Controller implements Initializable {
             stylize(category, "optionList");
             setStringCellFactory(category, "dirCell");
 
+            TreeSet<String> cate = new TreeSet<>();
+
             for (int i = 0; i < 3; i++) {
                 if (!p.categories.categories.get(cat).get(i).isEmpty()) {
                     enable.getItems().add(filterBy[i]);
 
-                    for (String dir : p.categories.categories.get(cat).get(i)) {
-                        category.getItems().add(dir);
-                    }
+                    cate.addAll(p.categories.categories.get(cat).get(i));
                 }
             }
+
+            category.getItems().addAll(cate);
 
             enable.getSelectionModel().selectFirst();
 
