@@ -12,7 +12,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 
-import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
@@ -43,7 +42,10 @@ public class Controller implements Initializable {
     private Label match;
     private ListView<String> matchingTestList;
     private Map<CheckBox, ComboBox<String>[]> flat = new HashMap<>();
-    ArrayList<ArrayList<String>> selectedFilter = new ArrayList<>();
+    ArrayList<ArrayList<String>> activeSelectedFilter = new ArrayList<>();
+
+    ArrayList<ArrayList<String>> chosenFilter = new ArrayList<>();
+    ArrayList<Boolean> activeFilter = new ArrayList<>();
 
     ArrayList<String> availableSuites = new ArrayList<>();
     ArrayList<String> curr = new ArrayList<>();
@@ -220,9 +222,6 @@ public class Controller implements Initializable {
             CheckBox checkBox = new CheckBox();
             checkBox.setText("");
             stylize(checkBox, "filterEnable");
-            checkBox.setOnAction(e -> {
-                updateFilterStats(checkBox);
-            });
 
             h.getChildren().add(checkBox);
 
@@ -257,8 +256,26 @@ public class Controller implements Initializable {
             category.getItems().addAll(cate);
 
             enable.getSelectionModel().selectFirst();
+            category.getSelectionModel().selectFirst();
 
-            flat.put(checkBox, new ComboBox[]{enable, category});
+            /*
+            chosenFilter: {
+                {cat, enable, category},
+                ...
+
+            }
+            */
+
+            ArrayList<String> temp = new ArrayList<>();
+            temp.add(cat);
+            temp.add(enable.getSelectionModel().getSelectedItem());
+            temp.add(category.getSelectionModel().getSelectedItem());
+            chosenFilter.add(temp);
+            activeFilter.add(false);
+
+            checkBox.setOnAction(e -> {updateChosenFilter(cat, checkBox, enable, category);});
+            enable.setOnAction(e -> {updateChosenFilter(cat, checkBox, enable, category);});
+            category.setOnAction(e -> {updateChosenFilter(cat, checkBox, enable, category);});
 
             v.getChildren().add(enable);
 
@@ -287,8 +304,8 @@ public class Controller implements Initializable {
 
         right.getChildren().add(matchingTestList);
 
-        for (int i = 0; i < 3; i++) selectedFilter.add(new ArrayList<>());
-        matchingTestList.getItems().addAll(p.givenDirs(selectedFilter));
+        for (int i = 0; i < 3; i++) activeSelectedFilter.add(new ArrayList<>());
+        matchingTestList.getItems().addAll(p.givenDirs(activeSelectedFilter));
 
         enableFilter(false);
 
@@ -370,49 +387,64 @@ public class Controller implements Initializable {
         if (!(mode == ToolMode.ALL)) selected.setText("[]");
     }
 
-    public void updateFilterStats(CheckBox checkBox) {
+    public void updateChosenFilter(String cat, CheckBox checkBox, ComboBox<String> enable, ComboBox<String> category) {
+
+        // update chosenFilter
+        for (int i = 0; i < chosenFilter.size(); i++) {
+
+            if (!chosenFilter.get(i).getFirst().equals(cat)) continue;
+
+            // modify enable to be current
+            chosenFilter.get(i).set(1, enable.getSelectionModel().getSelectedItem());
+
+            //modify category directive
+            chosenFilter.get(i).set(2, category.getSelectionModel().getSelectedItem());
+
+            //mark as active if checked
+            if (checkBox.isSelected()) {
+                activeFilter.set(i, true);
+                updateMatch();
+            } else {
+                activeFilter.set(i, false);
+                updateMatch();
+            }
+
+            System.out.println(i);
+            System.out.println(chosenFilter.get(i).get(1));
+            System.out.println(chosenFilter.get(i).get(2));
+
+            break;
+
+        }
+
+
+
+    }
+
+    public void updateMatch() {
 
         matchingTestList.getItems().clear();
 
-        if (flat.get(checkBox)[1].getSelectionModel().getSelectedItem() == null) {
-            match.setText("Item not selected you moron");
-            return;
-        }
+        activeSelectedFilter.clear();
+        for (int i = 0; i < 3; i++) activeSelectedFilter.add(new ArrayList<>());
 
-        if (checkBox.isSelected()) {    // method called on ticking a checkbox
-            switch (flat.get(checkBox)[0].getSelectionModel().getSelectedItem()) {
-                case "only" -> {
-                    selectedFilter.get(0).add(flat.get(checkBox)[1].getSelectionModel().getSelectedItem());
-                }
-                case "ignore" -> {
-                    selectedFilter.get(1).add(flat.get(checkBox)[1].getSelectionModel().getSelectedItem());
-                }
-                case "need" -> {
-                    selectedFilter.get(2).add(flat.get(checkBox)[1].getSelectionModel().getSelectedItem());
-                }
-            }
+        for (int i = 0; i < chosenFilter.size(); i++) {
+            if (!activeFilter.get(i)) continue;
 
-        } else {
-            // method called on unticking
-            switch (flat.get(checkBox)[0].getSelectionModel().getSelectedItem()) {
-                case "only" -> {
-                    selectedFilter.get(0).removeIf(s -> s.equals(flat.get(checkBox)[1].getSelectionModel().getSelectedItem()));
-                }
-                case "ignore" -> {
-                    selectedFilter.get(1).removeIf(s -> s.equals(flat.get(checkBox)[1].getSelectionModel().getSelectedItem()));
-                }
-                case "need" -> {
-                    selectedFilter.get(2).removeIf(s -> s.equals(flat.get(checkBox)[1].getSelectionModel().getSelectedItem()));
-                }
+            switch (chosenFilter.get(i).get(1)) {
+                case "only" -> activeSelectedFilter.get(0).add(chosenFilter.get(i).get(2));
+                case "ignore" -> activeSelectedFilter.get(1).add(chosenFilter.get(i).get(2));
+                case "need" -> activeSelectedFilter.get(2).add(chosenFilter.get(i).get(2));
+
             }
         }
 
-        ArrayList<String> matchedTest = p.givenDirs(selectedFilter);
+        System.out.println(activeSelectedFilter);
+
+        ArrayList<String> matchedTest = p.givenDirs(activeSelectedFilter);
 
         match.setText("Matching tests: " + matchedTest.size());
         matchingTestList.getItems().addAll(matchedTest);
-
-
 
     }
 
