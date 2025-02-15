@@ -182,7 +182,7 @@ public class Parser {
         System.out.println("}\n");
     }
 
-    public void givenEnv() {
+    public void givenEnv(ArrayList<String> selectedEnv) {
 
         ArrayList<File> pass = new ArrayList<>();
         ArrayList<File> fail = new ArrayList<>();
@@ -193,14 +193,26 @@ public class Parser {
 
                 boolean isRan = true;
 
-                // only - if not found, isRan = false
-                if (!filters.get(i).get(j).get(0).isEmpty())
-                    for (String dir : filters.get(i).get(j).get(0)) {
+                for (String env : selectedEnv) {    // for every env selected
+
+                    // only - if not found, isRan = false
+                    if (!filters.get(i).get(j).get(0).isEmpty()) {
                         boolean found = false;
+                        for (String dir : filters.get(i).get(j).get(0)) {
 
+                            if (dir.contains(env)) found = true;
 
-                        if (found) break;
+                        }
+                        if (!found) {
+                            isRan = false;
+                            break;
+                        }
+                    }
+
+                    if (!isRan) break;
                 }
+
+
 
 
             }
