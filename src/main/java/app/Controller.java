@@ -170,7 +170,7 @@ public class Controller implements Initializable {
 
         /* update when input change */
         inputField.textProperty().addListener((_, _, newValue) -> {
-            System.out.println(" Text Changed to  " + newValue + ")\n");
+            // System.out.println(" Text Changed to  " + newValue + ")\n");
 
             suiteList.getItems().setAll(availableSuites);
             suiteList.getItems().removeIf(e -> !e.contains(newValue));
@@ -373,6 +373,10 @@ public class Controller implements Initializable {
     public void updateTagSearchStats() {
 
         try {
+
+            for (String cat : curr) {
+
+            }
 
             p.displayStats();
 

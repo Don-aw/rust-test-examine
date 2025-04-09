@@ -21,8 +21,8 @@ public class GUI extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
-            URL url = getClass().getResource("Main.fxml");
-            if (url == null) System.out.println("null");
+//            URL url = getClass().getResource("Main.fxml");
+//            if (url == null) System.out.println("null");
             Parent root = FXMLLoader.load(getClass().getClassLoader().getResource("Main.fxml"));
             Scene scene = new Scene(root);
             primaryStage.setScene(scene);
