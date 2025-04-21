@@ -6,6 +6,7 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.chart.PieChart;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
@@ -202,6 +203,18 @@ public class Controller implements Initializable {
         right.getChildren().add(t);
         right.getChildren().add(selected);
 
+        // implement pie chart list here //
+
+        for (String cat : Categories.getCategoryNames()) {
+
+            // update pie chart stuff
+
+            ListView<PieChart> pieChartListView = new ListView<>();
+            setNodeCellFactory(pieChartListView, "PieChartList");
+        }
+
+        // --- //
+
         enableTagSearch(false);
 
     }
@@ -374,7 +387,13 @@ public class Controller implements Initializable {
 
         try {
 
-            for (String cat : curr) {
+            Categories info = p.analyseFolders(curr);
+
+            for (String cat : info.getCategoryNames()) {
+
+                // update pie chart stuff
+
+
 
             }
 

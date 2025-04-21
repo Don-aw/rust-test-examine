@@ -8,7 +8,7 @@ public class Categories {
 
     public HashMap<String, ArrayList<TreeSet<String>>> categories = new HashMap<>();
     // category name: {  only:{}, ignore:{}, need:{}  }
-    private String[] categoryNames = {
+    private static String[] categoryNames = {
             "targetTuples", "architecture", "vendor", "os", "environment",
             "pointerWidth", "wasm", "endian", "stage", "channel",
             "crossCompile", "compareMode", "coverage", "remote",
@@ -32,26 +32,13 @@ public class Categories {
         }
     }
 
-    public void loadOnly(String dir) {
-
-        for (String cat: categoryPatterns.keySet()) {
-            // System.out.println(cat);
-            for (Pattern pattern : categoryPatterns.get(cat)) {
-                Matcher m = pattern.matcher(dir);
-
-                if (m.find()) {
-                    categories.get(cat).get(0).add(dir);
-                    return;
-                }
-            }
-        }
-
-        if (dir.contains("-")) categories.get("targetTuples").get(0).add(dir);
-        else categories.get("other-only").get(0).add(dir);
-
+    public HashMap<String, ArrayList<TreeSet<String>>> getCategories() {
+        return categories;
     }
 
-    public void loadIgnore(String dir) {
+    public void loadDir(String dir, int key) {
+
+        // key=0 for only, 1 for ignore, 2 for need
 
         for (String cat: categoryPatterns.keySet()) {
             // System.out.println(cat);
@@ -59,33 +46,14 @@ public class Categories {
                 Matcher m = pattern.matcher(dir);
 
                 if (m.find()) {
-                    categories.get(cat).get(1).add(dir);
+                    categories.get(cat).get(key).add(dir);
                     return;
                 }
             }
         }
 
-        if (dir.contains("-")) categories.get("targetTuples").get(1).add(dir);
-        else categories.get("other-ignore").get(1).add(dir);
-
-    }
-
-    public void loadNeed(String dir) {
-
-        for (String cat: categoryPatterns.keySet()) {
-            // System.out.println(cat);
-            for (Pattern pattern : categoryPatterns.get(cat)) {
-                Matcher m = pattern.matcher(dir);
-
-                if (m.find()) {
-                    categories.get(cat).get(2).add(dir);
-                    return;
-                }
-            }
-        }
-
-        if (dir.contains("-")) categories.get("targetTuples").get(2).add(dir);
-        else categories.get("other-ignore").get(2).add(dir);
+        if (dir.contains("-")) categories.get("targetTuples").get(key).add(dir);
+        else categories.get("other-only").get(key).add(dir);
 
     }
 
@@ -111,7 +79,7 @@ public class Categories {
         }
     }
 
-    public String[] getCategoryNames() {
+    public static String[] getCategoryNames() {
         return categoryNames;
     }
 

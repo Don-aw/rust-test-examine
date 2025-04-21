@@ -38,7 +38,7 @@ public class Parser {
 
     }
 
-    public void parseFilter(File f) throws IOException {
+    public HashMap<String, ArrayList<ArrayList<String>>> parseFilter(File f) throws IOException {
 
         BufferedReader r = new BufferedReader(new FileReader(f));
 
@@ -72,7 +72,7 @@ public class Parser {
                         (line.contains("aux")
                         || line.toLowerCase().contains("not a test")
                         || line.contains("helper")))
-                    return;
+                    return fileFilters;
 
                 else if (line.contains("revisions:")) {
                     //splice the "revisions: " out, and parse for all revisions
@@ -110,7 +110,7 @@ public class Parser {
             line = r.readLine();
         }
 
-        filters.put(f, fileFilters);
+        return fileFilters;
 
         //System.out.println(filters);
 
@@ -124,8 +124,37 @@ public class Parser {
         listOfTestFiles(rootFolder, dirs);
 
         for (File test : dirs) {
-            parseFilter(test);
+            filters.put(test, parseFilter(test));
         }
+
+    }
+
+    public Categories analyseFolders(ArrayList<String> suiteNames) throws IOException {
+
+        Categories info = new Categories();
+        ArrayList<File> dirs = new ArrayList<>();
+
+        for (String suite : suiteNames) {
+            File currFolder = new File(Paths.get(new File("")
+                    .getAbsolutePath()).getParent().toString().concat("/rust/tests/"+suite));
+
+            listOfTestFiles(currFolder, dirs);
+            for (File test : dirs) {
+                HashMap<String, ArrayList<ArrayList<String>>> currFilters = parseFilter(test);
+                for (String rev : currFilters.keySet()) {
+                    int c = 0;
+                    for (ArrayList<String> option : currFilters.get(rev)) {
+                        for (String line : option) {
+                            info.loadDir(line, c);
+                        }
+                        c++;
+                    }
+                }
+            }
+        }
+
+        return info;
+
 
     }
 
@@ -330,20 +359,10 @@ public class Parser {
 
             for (String j : filters.get(i).keySet()) {  // for every revision
 
-                // for the "only" in revision
-
-                for (String dir: filters.get(i).get(j).get(0)) {
-                    categories.loadOnly(dir);
-                }
-
-                // for the "ignore"
-                for (String dir: filters.get(i).get(j).get(1)) {
-                    categories.loadIgnore(dir);
-                }
-
-                // for "need"
-                for (String dir: filters.get(i).get(j).get(2)) {
-                    categories.loadNeed(dir);
+                for (int key = 0; key < 3; key++) {
+                    for (String dir : filters.get(i).get(j).get(key)) {
+                        categories.loadDir(dir, key);
+                    }
                 }
             }
 
