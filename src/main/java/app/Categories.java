@@ -18,7 +18,7 @@ public class Categories {
             "sanitizer", "capabilities", "addiDependency", "autoDiff",
             "other-only", "other-ignore", "other-need"  // uncategorized misc directives
     };
-    private HashMap<String, List<Pattern>> categoryPatterns = new HashMap<>();
+    private static HashMap<String, List<Pattern>> categoryPatterns = new HashMap<>();
 
 
 
@@ -44,21 +44,27 @@ public class Categories {
 
         // key=0 for only, 1 for ignore, 2 for need
 
+        String dirCategory = categorize(dir);
+
+        categories.get(dirCategory).get(key).add(dir);
+        counted.get(dirCategory).get(key).merge(dir.split(" ")[0], 1, Integer::sum);
+
+    }
+
+    public static String categorize(String dir) {
         for (String cat: categoryPatterns.keySet()) {
             // System.out.println(cat);
             for (Pattern pattern : categoryPatterns.get(cat)) {
                 Matcher m = pattern.matcher(dir);
 
                 if (m.find()) {
-                    categories.get(cat).get(key).add(dir);
-                    counted.get(cat).get(key).merge(dir.split(" ")[0], 1, Integer::sum);
-                    return;
+                    return cat;
                 }
             }
         }
 
-        if (dir.contains("-")) categories.get("targetTuples").get(key).add(dir);
-        else categories.get("other-only").get(key).add(dir);
+        if (dir.contains("-")) return "targetTuples";
+        else return "other-only";
 
     }
 

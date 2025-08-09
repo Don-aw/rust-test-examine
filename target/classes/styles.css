@@ -4,6 +4,13 @@
 
 }
 
+.categoryTitle .label {
+
+    -fx-alignment: center;
+    -fx-text-fill: #1E90FF;
+
+}
+
 .PieChartList {
 
     -fx-background-color: #252525;
@@ -113,21 +120,44 @@
 
 }
 
-.dirCell {
+.dirList {
 
     -fx-background-color: #252525;
     -fx-text-fill: #FFFFFF;
-    -fx-pref-width: 150px;
+    -fx-pref-width: 200px;
+    -fx-max-width: 200px;
+
+}
+
+.dirList .button {
+
+    -fx-text-fill: #FFFFFF;
+
+}
+
+.dirList .text {
+
+    -fx-fill: #FFFFFF;
+
+}
+
+.dirCell {
+
+    -fx-background-color: #252525;
+    -fx-text-fill: #AAAAAA;
+    -fx-pref-width: 140px;
+    -fx-max-width: 140px;
     -fx-font-family: "Avenir Roman";
     -fx-font-size: 12;
-
+    -fx-ellipsis: "...";
 }
 
 .dirCell:selected {
 
     -fx-background-color: #252525;
     -fx-text-fill: #FFFFFF;
-    -fx-pref-width: 150px;
+    -fx-pref-width: 140px;
+    -fx-max-width: 140px;
     -fx-font-family: "Avenir Roman";
 
 }

@@ -290,6 +290,43 @@ public class Parser {
         return matches;
     }
 
+    public ArrayList<String> givenCats(HashMap<String, String> cats) {
+
+        ArrayList<String> neverRun = new ArrayList<>();
+
+        for (File i : filters.keySet()) {   // for every test file
+
+            for (String j : filters.get(i).keySet()) {  // for every revision { only, ignore, need }
+
+                boolean never = false;
+
+                // only, and need - if not match, then never runs
+
+                for (int k : new int[]{0, 2})
+                    for (String dir : filters.get(i).get(j).get(0)) {   // for every "only" directory
+                    if (never) break;
+                    String dirCategory = Categories.categorize(dir);
+                    if (cats.get(dirCategory) == null) never = true;
+                    else if (!dir.contains(cats.get(dirCategory))) never = true;  // if not contain, never runs
+                }
+
+                // ignore - if contains, then never runs
+
+                for (String dir : filters.get(i).get(j).get(1)) {   // for every "ignore" directory
+                    if (never) break;
+                    String dirCategory = Categories.categorize(dir);
+                    if (cats.get(dirCategory) == null) continue;
+                    else if (dir.contains(cats.get(dirCategory))) never = true;  // if contains, never runs
+                }
+
+                if (never) neverRun.add(i.getAbsolutePath() + "#" + j);
+
+            }
+        }
+
+        return neverRun;
+    }
+
     public void addRevision(String revName, HashMap h) {
         ArrayList<ArrayList<String>> temp = new ArrayList<>();
         for (int i = 0; i < 4; i++) {

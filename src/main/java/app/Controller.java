@@ -10,11 +10,14 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.*;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
@@ -46,14 +49,17 @@ public class Controller implements Initializable {
     private Label match;
     private ListView<String> matchingTestList;
     // private Map<CheckBox, ComboBox<String>[]> flat = new HashMap<>();
-    ArrayList<ArrayList<String>> activeSelectedFilter = new ArrayList<>();
+    private ArrayList<ArrayList<String>> activeSelectedFilter = new ArrayList<>();
+    private ArrayList<ArrayList<String>> chosenFilter = new ArrayList<>();
+    private ArrayList<Boolean> activeFilter = new ArrayList<>();
 
     // never run elements
     private ListView<HBox> categoriesList;
-    private ArrayList<String> activeCatagoriesList = new ArrayList<>();
+    private HashMap<String, String> activeCategories = new HashMap<>();
+    private Label selectionDisplay;
+    private ListView<String> neverRunList;
+    private Label nrcount;
 
-    ArrayList<ArrayList<String>> chosenFilter = new ArrayList<>();
-    ArrayList<Boolean> activeFilter = new ArrayList<>();
 
     ArrayList<String> availableSuites = new ArrayList<>();
     ArrayList<String> curr = new ArrayList<>();
@@ -229,6 +235,8 @@ public class Controller implements Initializable {
         // middle part
         filterList = new ListView<>();
         stylize(filterList, "categories");
+        setNodeCellFactory(filterList, "filterCell");
+
 
         for (String cat : Categories.getCategoryNames()) {
 
@@ -304,8 +312,6 @@ public class Controller implements Initializable {
 
         }
 
-        setNodeCellFactory(filterList, "filterCell");
-
         middle.getChildren().add(filterList);
 
         // right part
@@ -324,6 +330,7 @@ public class Controller implements Initializable {
 
         for (int i = 0; i < 3; i++) activeSelectedFilter.add(new ArrayList<>());
         matchingTestList.getItems().addAll(p.givenDirs(activeSelectedFilter));
+        matchingTestList.setOnMouseClicked(e -> copyToClipboard(matchingTestList));
 
         enableFilter(false);
 
@@ -351,13 +358,16 @@ public class Controller implements Initializable {
 
             Label title = new Label();
             title.setText(cat);
-            stylize(title, "filterTitle");
+            stylize(title, "");
+            title.setPrefWidth(100);
+            title.setMinWidth(100);
+
             h.getChildren().add(title);
 
             // load only/ignore/need option if they exist in category
 
             ComboBox<String> category = new ComboBox<>();
-            stylize(category, "optionList");
+            stylize(category, "dirList");
             setStringCellFactory(category, "dirCell");
 
             TreeSet<String> cate = new TreeSet<>();
@@ -386,16 +396,37 @@ public class Controller implements Initializable {
             chosenFilter.add(temp);
             activeFilter.add(false);
 
-//            checkBox.setOnAction(e -> {updateChosenFilter(cat, checkBox, enable, category);});
-//            category.setOnAction(e -> {updateChosenFilter(cat, checkBox, enable, category);});
+            checkBox.setOnAction(e -> {updateChosenCategory(cat, checkBox, category);});
+            category.setOnAction(e -> {updateChosenCategory(cat, checkBox, category);});
 
             h.getChildren().add(category);
 
             categoriesList.getItems().add(h);
+            activeCategories.put(cat, null);
 
         }
 
         middle.getChildren().add(categoriesList);
+
+        // right part
+        selectionDisplay = new Label();
+        stylize(selectionDisplay, "");
+        selectionDisplay.setText("Env: ");
+
+        nrcount = new Label();
+        stylize(nrcount, "");
+        nrcount.setText("Number of test that never runs: ");
+
+        neverRunList = new ListView<>();
+        stylize(neverRunList, "testList");
+        setStringCellFactory(neverRunList, "dirCell");
+        neverRunList.setOnMouseClicked(e -> copyToClipboard(neverRunList));
+
+        right.getChildren().add(selectionDisplay);
+        right.getChildren().add(nrcount);
+        right.getChildren().add(neverRunList);
+
+        enableNeverRun(false);
 
     }
 
@@ -441,6 +472,14 @@ public class Controller implements Initializable {
         // middle components
         categoriesList.setManaged(active);
         categoriesList.setVisible(active);
+
+        // right components
+        selectionDisplay.setManaged(active);
+        selectionDisplay.setVisible(active);
+        neverRunList.setManaged(active);
+        neverRunList.setVisible(active);
+        nrcount.setManaged(active);
+        nrcount.setVisible(active);
     }
 
     public void updateCurr() {
@@ -518,6 +557,32 @@ public class Controller implements Initializable {
         if (!(mode == ToolMode.ALL)) selected.setText("[]");
     }
 
+    public void updateChosenCategory(String cat, CheckBox checkBox, ComboBox<String> category) {
+        // determine if activate or not
+        if (checkBox.isSelected()) activeCategories.replace(cat, category.getValue());
+        else activeCategories.replace(cat, null);
+
+        StringBuilder text = new StringBuilder("Env: ");
+        for (String cate : activeCategories.keySet()){
+            if (activeCategories.get(cate) == null) continue;
+            text.append(activeCategories.get(cate)).append(", ");
+        }
+        selectionDisplay.setText(text.toString());
+
+        updateNeverRun();
+
+    }
+
+    public void updateNeverRun() {
+
+        ArrayList<String> nr = p.givenCats(activeCategories);
+
+        nrcount.setText("Number of tests that never runs: " + nr.size());
+
+        neverRunList.getItems().clear();
+        neverRunList.getItems().addAll(nr);
+    }
+
     public void updateChosenFilter(String cat, CheckBox checkBox, ComboBox<String> enable, ComboBox<String> category) {
 
         // update chosenFilter
@@ -540,9 +605,9 @@ public class Controller implements Initializable {
                 updateMatch();
             }
 
-            System.out.println(i);
-            System.out.println(chosenFilter.get(i).get(1));
-            System.out.println(chosenFilter.get(i).get(2));
+//            System.out.println(i);
+//            System.out.println(chosenFilter.get(i).get(1));
+//            System.out.println(chosenFilter.get(i).get(2));
 
             break;
 
@@ -570,7 +635,7 @@ public class Controller implements Initializable {
             }
         }
 
-        System.out.println(activeSelectedFilter);
+        // System.out.println(activeSelectedFilter);
 
         ArrayList<String> matchedTest = p.givenDirs(activeSelectedFilter);
 
@@ -612,7 +677,9 @@ public class Controller implements Initializable {
                     protected void updateItem(String item, boolean empty) {
                         super.updateItem(item, empty);
                         getStyleClass().add(styleClass);
-                        setText(item);
+                        Label label = new Label(item);
+                        setText(null);
+                        setGraphic(label);
                     }
                 };
             }
@@ -636,6 +703,14 @@ public class Controller implements Initializable {
         });
     }
 
-
+    private void copyToClipboard(ListView<String> list) {
+        String selectedItem = list.getSelectionModel().getSelectedItem();
+        if (selectedItem != null) {
+            Clipboard cb = Clipboard.getSystemClipboard();
+            ClipboardContent content = new ClipboardContent();
+            content.putString(selectedItem);
+            cb.setContent(content);
+        }
+    }
 
 }
