@@ -139,15 +139,14 @@ public class Parser {
                     .getAbsolutePath()).getParent().toString().concat("/rust/tests/"+suite));
 
             listOfTestFiles(currFolder, dirs);
-            for (File test : dirs) {
+
+            for (File test : dirs) {    // for every file
                 HashMap<String, ArrayList<ArrayList<String>>> currFilters = parseFilter(test);
-                for (String rev : currFilters.keySet()) {
-                    int c = 0;
-                    for (ArrayList<String> option : currFilters.get(rev)) {
-                        for (String line : option) {
+                for (String rev : currFilters.keySet()) {   // for every revision
+                    for (int c = 0; c < 3; c++) {
+                        for (String line : currFilters.get(rev).get(c)) {
                             info.loadDir(line, c);
                         }
-                        c++;
                     }
                 }
             }
@@ -353,7 +352,6 @@ public class Parser {
     }
 
     public void loadCategories() {
-
 
         for (File i : filters.keySet()) {   // for every file
 

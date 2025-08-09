@@ -6,7 +6,9 @@ import java.util.regex.Pattern;
 
 public class Categories {
 
-    public HashMap<String, ArrayList<TreeSet<String>>> categories = new HashMap<>();
+    public HashMap<String, ArrayList<LinkedList<String>>> categories = new HashMap<>();
+    private HashMap<String, ArrayList<TreeMap<String, Integer>>> counted = new HashMap<>();
+
     // category name: {  only:{}, ignore:{}, need:{}  }
     private static String[] categoryNames = {
             "targetTuples", "architecture", "vendor", "os", "environment",
@@ -26,13 +28,15 @@ public class Categories {
 
         for (String catName : categoryNames) {
             categories.put(catName, new ArrayList<>());
+            counted.put(catName, new ArrayList<>());
             for (int i = 0; i < 3; i++) {
-                categories.get(catName).add(new TreeSet<>());
+                categories.get(catName).add(new LinkedList<>());
+                counted.get(catName).add(new TreeMap<>());
             }
         }
     }
 
-    public HashMap<String, ArrayList<TreeSet<String>>> getCategories() {
+    public HashMap<String, ArrayList<LinkedList<String>>> getCategories() {
         return categories;
     }
 
@@ -47,6 +51,7 @@ public class Categories {
 
                 if (m.find()) {
                     categories.get(cat).get(key).add(dir);
+                    counted.get(cat).get(key).merge(dir.split(" ")[0], 1, Integer::sum);
                     return;
                 }
             }
@@ -55,6 +60,10 @@ public class Categories {
         if (dir.contains("-")) categories.get("targetTuples").get(key).add(dir);
         else categories.get("other-only").get(key).add(dir);
 
+    }
+
+    public HashMap<String, ArrayList<TreeMap<String, Integer>>> getCounted() {
+        return counted;
     }
 
     public void display() {

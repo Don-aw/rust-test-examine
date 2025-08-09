@@ -1,6 +1,8 @@
 package app;
 
+import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
@@ -37,13 +39,18 @@ public class Controller implements Initializable {
     private ListView<String> suiteList;
     private Label selected;
     private Label t;
+    private ListView<PieChart> pieChartListView;
 
     // filter elements
     private ListView<HBox> filterList;
     private Label match;
     private ListView<String> matchingTestList;
-    private Map<CheckBox, ComboBox<String>[]> flat = new HashMap<>();
+    // private Map<CheckBox, ComboBox<String>[]> flat = new HashMap<>();
     ArrayList<ArrayList<String>> activeSelectedFilter = new ArrayList<>();
+
+    // never run elements
+    private ListView<HBox> categoriesList;
+    private ArrayList<String> activeCatagoriesList = new ArrayList<>();
 
     ArrayList<ArrayList<String>> chosenFilter = new ArrayList<>();
     ArrayList<Boolean> activeFilter = new ArrayList<>();
@@ -52,7 +59,7 @@ public class Controller implements Initializable {
     ArrayList<String> curr = new ArrayList<>();
     ArrayList<String> modeTypes = new ArrayList<>(Arrays.asList("All", "Selected", "Single"));
 
-    ToolMode mode = ToolMode.ALL;
+    ToolMode mode = ToolMode.SINGLE;
 
     Parser p = new Parser();
 
@@ -73,6 +80,7 @@ public class Controller implements Initializable {
 
         initializeTagSearch();
         initializeFilter();
+        initializeNeverRun();
 
         /* stylize tools*/
         tools.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
@@ -99,17 +107,19 @@ public class Controller implements Initializable {
                         case "Tag Search" -> {
                             enableTagSearch(true);  // tag
                             enableFilter(false);    // no filter
+                            enableNeverRun(false);  // no never run
                         }
                         case "Filter" -> {
                             enableTagSearch(false); // no tag
                             enableFilter(true);     // filter
+                            enableNeverRun(false);  // no never run
                         }
                         case "Never runs" -> {
-                            enableTagSearch(false); //no tag
-                            enableFilter(false);    //no filter
+                            enableTagSearch(false); // no tag
+                            enableFilter(false);    // no filter
+                            enableNeverRun(true);   // never run
                         }
                     }
-                    updateCurr();
                 }
             }
 
@@ -156,7 +166,7 @@ public class Controller implements Initializable {
 
         clear = new Button();
         clear.setText("Clear");
-        clear.setOnMouseClicked(e -> resetCurr());
+        clear.setOnMouseClicked(e -> {resetCurr(); updateCurr();});
         stylize(clear, "");
 
         options.getChildren().add(modes);
@@ -203,17 +213,12 @@ public class Controller implements Initializable {
         right.getChildren().add(t);
         right.getChildren().add(selected);
 
-        // implement pie chart list here //
+        pieChartListView = new ListView<>();
+        stylize(pieChartListView, "PieChartList");
+        setNodeCellFactory(pieChartListView, "PieChartListCell");
 
-        for (String cat : Categories.getCategoryNames()) {
+        right.getChildren().add(pieChartListView);
 
-            // update pie chart stuff
-
-            ListView<PieChart> pieChartListView = new ListView<>();
-            setNodeCellFactory(pieChartListView, "PieChartList");
-        }
-
-        // --- //
 
         enableTagSearch(false);
 
@@ -225,7 +230,7 @@ public class Controller implements Initializable {
         filterList = new ListView<>();
         stylize(filterList, "categories");
 
-        for (String cat : p.categories.getCategoryNames()) {
+        for (String cat : Categories.getCategoryNames()) {
 
             HBox h = new HBox();
             h.setAlignment(Pos.CENTER_LEFT);
@@ -324,6 +329,76 @@ public class Controller implements Initializable {
 
     }
 
+    public void initializeNeverRun() {
+
+        // middle part
+        categoriesList = new ListView<>();
+        stylize(categoriesList, "categories");
+        setNodeCellFactory(categoriesList, "filterCell");
+
+        for (String cat : Categories.getCategoryNames()) {
+
+            HBox h = new HBox();
+            h.setAlignment(Pos.CENTER_LEFT);
+            stylize(h, "filterBox");
+
+            // add listener later
+            CheckBox checkBox = new CheckBox();
+            checkBox.setText("");
+            stylize(checkBox, "filterEnable");
+
+            h.getChildren().add(checkBox);
+
+            Label title = new Label();
+            title.setText(cat);
+            stylize(title, "filterTitle");
+            h.getChildren().add(title);
+
+            // load only/ignore/need option if they exist in category
+
+            ComboBox<String> category = new ComboBox<>();
+            stylize(category, "optionList");
+            setStringCellFactory(category, "dirCell");
+
+            TreeSet<String> cate = new TreeSet<>();
+
+            for (int i = 0; i < 3; i++) {
+                if (!p.categories.categories.get(cat).get(i).isEmpty()) {
+                    cate.addAll(p.categories.categories.get(cat).get(i));
+                }
+            }
+
+            category.getItems().addAll(cate);
+
+            category.getSelectionModel().selectFirst();
+
+            /*
+            chosenFilter: {
+                {cat, enable, category},
+                ...
+
+            }
+            */
+
+            ArrayList<String> temp = new ArrayList<>();
+            temp.add(cat);
+            temp.add(category.getSelectionModel().getSelectedItem());
+            chosenFilter.add(temp);
+            activeFilter.add(false);
+
+//            checkBox.setOnAction(e -> {updateChosenFilter(cat, checkBox, enable, category);});
+//            category.setOnAction(e -> {updateChosenFilter(cat, checkBox, enable, category);});
+
+            h.getChildren().add(category);
+
+            categoriesList.getItems().add(h);
+
+        }
+
+        middle.getChildren().add(categoriesList);
+
+    }
+
     public void enableTagSearch(boolean active) {
         //left components
         modes.setManaged(active);
@@ -342,6 +417,10 @@ public class Controller implements Initializable {
         t.setVisible(active);
         selected.setManaged(active);
         selected.setVisible(active);
+        pieChartListView.setManaged(active);
+        pieChartListView.setVisible(active);
+
+        if (active) updateCurr();
     }
 
     public void enableFilter(boolean active) {
@@ -356,6 +435,12 @@ public class Controller implements Initializable {
         match.setVisible(active);
         matchingTestList.setManaged(active);
         matchingTestList.setVisible(active);
+    }
+
+    public void enableNeverRun(boolean active) {
+        // middle components
+        categoriesList.setManaged(active);
+        categoriesList.setVisible(active);
     }
 
     public void updateCurr() {
@@ -387,17 +472,40 @@ public class Controller implements Initializable {
 
         try {
 
+            // clear out the elements in pie chart
+            pieChartListView.getItems().clear();
+
             Categories info = p.analyseFolders(curr);
 
-            for (String cat : info.getCategoryNames()) {
+            for (String suite : curr)   // for every currently selected suite
+                for (String cat : Categories.getCategoryNames()) {  // for every category, used to generate chart data
 
-                // update pie chart stuff
+                    // skip category if no data is present
+                    if (info.getCounted().get(cat).get(0).isEmpty() &&
+                            info.getCounted().get(cat).get(1).isEmpty() &&
+                            info.getCounted().get(cat).get(2).isEmpty()) continue;
+
+                    ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList();
+
+                    for (int i = 0; i < 3; i++) {
+                        TreeMap<String, Integer> dirCount = info.getCounted().get(cat).get(i);
+                        for (String name : dirCount.keySet()) {
+                            pieChartData.add(new PieChart.Data(
+                                    filterBy[i]+ "-" +name + ": " + dirCount.get(name), dirCount.get(name)));
+                        }
+                    }
 
 
 
-            }
 
-            p.displayStats();
+                     PieChart chart = new PieChart(pieChartData);
+                     chart.setTitle(cat);
+
+                    pieChartListView.getItems().add(chart);
+
+                }
+
+            // p.displayStats();
 
         } catch (IOException e) {
             throw new RuntimeException(e);
